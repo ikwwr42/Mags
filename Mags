@@ -1,0 +1,59 @@
+local player = game.Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local throwEvent = ReplicatedStorage:WaitForChild("ThrowFootball")
+local catchEvent = ReplicatedStorage:WaitForChild("CatchFootball")
+
+-- Create ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Throw Button
+local throwBtn = Instance.new("TextButton")
+throwBtn.Size = UDim2.new(0,100,0,100)
+throwBtn.Position = UDim2.new(1,-120,1,-120)
+throwBtn.Text = "THROW"
+throwBtn.Parent = gui
+
+-- Catch Button
+local catchBtn = Instance.new("TextButton")
+catchBtn.Size = UDim2.new(0,100,0,100)
+catchBtn.Position = UDim2.new(1,-240,1,-120)
+catchBtn.Text = "CATCH"
+catchBtn.Parent = gui
+
+-- Power
+local power = 100
+
+-- THROW (towards camera direction)
+throwBtn.MouseButton1Click:Connect(function()
+	local character = player.Character
+	if not character then return end
+	
+	local head = character:FindFirstChild("Head")
+	if not head then return end
+	
+	local camera = workspace.CurrentCamera
+	local direction = camera.CFrame.LookVector
+	
+	throwEvent:FireServer(direction, power)
+end)
+
+-- CATCH
+catchBtn.MouseButton1Click:Connect(function()
+	catchEvent:FireServer()
+end) game:GetService("RunService").RenderStepped:Connect(function()
+	local character = player.Character
+	if not character then return end
+	
+	local root = character:FindFirstChild("HumanoidRootPart")
+	local ball = workspace:FindFirstChild("Football")
+	
+	if root and ball then
+		local distance = (ball.Position - root.Position).Magnitude
+		
+		if distance < 8 then
+			catchEvent:FireServer()
+		end
+	end
+end)
